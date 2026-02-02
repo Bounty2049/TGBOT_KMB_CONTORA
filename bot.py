@@ -72,20 +72,20 @@ async def scheduled_message():
         now = datetime.now(pytz.timezone("Asia/Yekaterinburg"))
         current_time = now.time()
 
-        # if time(8, 0) <= current_time <= time(23, 59, 59):
-        record = get_random_term()
-        term_message = str()
-        for r in record:
-            term_message = f"{r[1]} - {r[2]}"
+        if time(8, 0) <= current_time <= time(23, 59, 59):
+            record = get_random_term()
+            term_message = str()
+            for r in record:
+                term_message = f"{r[1]} - {r[2]}"
 
-        users = await get_all_users()  
-        for user_id in users:
-            try:
-                await bot.send_message(user_id, term_message, parse_mode=ParseMode.HTML)
-            except Exception as e:
-                logger.error(f"Failed to send message to {user_id}: {e}")
+            users = await get_all_users()  
+            for user_id in users:
+                try:
+                    await bot.send_message(user_id, term_message, parse_mode=ParseMode.HTML)
+                except Exception as e:
+                    logger.error(f"Failed to send message to {user_id}: {e}")
 
-        await asyncio.sleep(10)  # Ждать 3 минуты перед следующим сообщением (3600 секунд = 1 час)
+        await asyncio.sleep(5400)  # Ждать 1.5 часа перед следующим сообщением (3600 секунд = 1 час)
 
 async def main():
     logger.info("Starting bot")
