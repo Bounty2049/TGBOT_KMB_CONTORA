@@ -1,5 +1,5 @@
 import sqlite3
-
+import random
 
 f = open("Bedingungen.txt", "r", encoding="utf-8")
 
@@ -28,11 +28,28 @@ cursor.execute("CREATE TABLE IF NOT EXISTS bedingungen (id INTEGER PRIMARY KEY A
 for i in range(len(termin)):
     cursor.execute("INSERT INTO bedingungen (term, description) VALUES (?, ?)", (termin[i], description[i]))
 
-cursor.execute("SELECT * FROM bedingungen")
-tables = cursor.fetchall()
-for table in tables:
-    print(f"ID: {table[0]}, Term: {table[1]}, Description: {table[2]}")
-    print()
+# cursor.execute("SELECT * FROM bedingungen")
+# tables = cursor.fetchall()
+# for table in tables:
+#     print(f"ID: {table[0]}, Term: {table[1]}, Description: {table[2]}")
+#     print()
 
+conn.commit()
 conn.close()
 print("Database and table created, data inserted successfully.")
+
+def get_random_term():
+    conn = sqlite3.connect('terms.db')
+    cursor = conn.cursor()
+
+    query = "SELECT * FROM bedingungen ORDER BY RANDOM() LIMIT 1"
+
+    cursor.execute(query)
+    record = cursor.fetchall()
+
+    conn.close()
+    return record
+
+record = get_random_term()
+for r in record:
+    print(f"ID: {r[0]}, Term: {r[1]}, Description: {r[2]}")

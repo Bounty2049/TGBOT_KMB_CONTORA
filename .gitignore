@@ -218,3 +218,5 @@ __marimo__/
 # My own files
 
 token.txt
+users.db
+terms.db
