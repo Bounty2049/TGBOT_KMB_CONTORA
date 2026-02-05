@@ -1,16 +1,16 @@
 import asyncio
 import logging
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.enums import ParseMode
 import aiosqlite 
 from dotenv import load_dotenv
 import os
-from datetime import date, time, datetime, timedelta
+from datetime import time, datetime
 import pytz
 
-from main import get_random_term
+from cruddb import get_random_term
 
 load_dotenv()
 
@@ -34,15 +34,7 @@ async def cmd_start(message: Message):
     )
 
 async def add_user(user_id: int, username: str = None, first_name: str = None, last_name: str = None):
-    async with aiosqlite.connect("users.db") as db:
-        await db.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                user_id INTEGER PRIMARY KEY,
-                username TEXT,
-                first_name TEXT,
-                last_name TEXT
-            )
-        """)
+    async with aiosqlite.connect("kmb_bot.db") as db:
         await db.execute("""
             INSERT OR REPLACE INTO users (user_id, username, first_name, last_name)
             VALUES (?, ?, ?, ?)
@@ -61,7 +53,7 @@ async def cmd_term(message: Message):
     )
 
 async def get_all_users():
-    async with aiosqlite.connect("users.db") as db:
+    async with aiosqlite.connect("kmb_bot.db") as db:
         async with db.execute("SELECT user_id FROM users") as cursor:
             rows = await cursor.fetchall()
             return [row[0] for row in rows] # Список ID пользователей 
