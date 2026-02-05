@@ -222,3 +222,5 @@ users.db
 terms.db
 kmb_bot.db
 Bedingungen.txt
+
+.gitignore
