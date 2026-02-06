@@ -1,7 +1,8 @@
 import sqlite3
+import aiosqlite
 
 # Get input file path from user
-file = input("Enter the path to the input file: ")
+file = "Bedingungen.txt"
 termin = []
 description = []
 
@@ -41,7 +42,7 @@ def create_database():
     print("Database and table created, data inserted successfully.")
 
 
-def get_random_term():
+async def get_random_term():
     '''
     Return a random term and its description and ID from the database 
     as a list of tuples [(id, term, description)]
@@ -53,19 +54,25 @@ def get_random_term():
         print(record[0][2]) # Description
     
     '''
+    async with aiosqlite.connect('kmb_bot.db') as db:
+        async with db.execute("SELECT * FROM bedingungen ORDER BY RANDOM() LIMIT 1") as cursor:
+            record = await cursor.fetchall()
 
-    conn = sqlite3.connect('kmb_bot.db')
-    cursor = conn.cursor()
-
-    query = "SELECT * FROM bedingungen ORDER BY RANDOM() LIMIT 1"
-
-    cursor.execute(query)
-    record = cursor.fetchall()
-
-    conn.close()
-    return record
+            return record
 
 
-record = get_random_term()
-print(record)
+async def get_all_users():
+    async with aiosqlite.connect("kmb_bot.db") as db:
+        async with db.execute("SELECT user_id FROM users") as cursor:
+            rows = await cursor.fetchall()
+            return [row[0] for row in rows] # Список ID пользователей 
 
+
+async def add_user(user_id: int, username: str = None, first_name: str = None, last_name: str = None):
+    async with aiosqlite.connect("kmb_bot.db") as db:
+        await db.execute("""
+            INSERT OR REPLACE INTO users (user_id, username, first_name, last_name)
+            VALUES (?, ?, ?, ?)
+        """, (user_id, username, first_name, last_name))
+        await db.commit()
+        await db.close()

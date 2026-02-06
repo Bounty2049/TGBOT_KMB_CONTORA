@@ -10,7 +10,7 @@ import os
 from datetime import time, datetime
 import pytz
 
-from cruddb import get_random_term
+from cruddb import get_random_term, get_all_users, add_user
 
 load_dotenv()
 
@@ -33,30 +33,21 @@ async def cmd_start(message: Message):
         last_name=message.from_user.last_name
     )
 
-async def add_user(user_id: int, username: str = None, first_name: str = None, last_name: str = None):
-    async with aiosqlite.connect("kmb_bot.db") as db:
-        await db.execute("""
-            INSERT OR REPLACE INTO users (user_id, username, first_name, last_name)
-            VALUES (?, ?, ?, ?)
-        """, (user_id, username, first_name, last_name))
-        await db.commit()
-
-@dp.message(Command("term"))
-async def cmd_term(message: Message):
-    record = get_random_term()
+async def get_record():
+    record = await get_random_term()
     term_message = str()
     for r in record:
         term_message = f"{r[1]} - {r[2]}"
+
+    return term_message
+
+
+@dp.message(Command("term"))
+async def cmd_term(message: Message):
     await message.answer(
-        term_message,
+        await get_record(),
         parse_mode=ParseMode.HTML
     )
-
-async def get_all_users():
-    async with aiosqlite.connect("kmb_bot.db") as db:
-        async with db.execute("SELECT user_id FROM users") as cursor:
-            rows = await cursor.fetchall()
-            return [row[0] for row in rows] # Список ID пользователей 
 
 # Отправит рандомный термин раз в некоторое время всем пользователям из базы данных 
 async def scheduled_message():
@@ -65,19 +56,15 @@ async def scheduled_message():
         current_time = now.time()
 
         if time(8, 0) <= current_time <= time(23, 59, 59):
-            record = get_random_term()
-            term_message = str()
-            for r in record:
-                term_message = f"{r[1]} - {r[2]}"
-
             users = await get_all_users()  
             for user_id in users:
                 try:
-                    await bot.send_message(user_id, term_message, parse_mode=ParseMode.HTML)
+                    await bot.send_message(user_id, await get_record(), parse_mode=ParseMode.HTML)
                 except Exception as e:
                     logger.error(f"Failed to send message to {user_id}: {e}")
 
         await asyncio.sleep(5400)  # Ждать 1.5 часа перед следующим сообщением (3600 секунд = 1 час)
+
 
 async def main():
     logger.info("Starting bot")
